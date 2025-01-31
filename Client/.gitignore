@@ -1,0 +1,53 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.sublime-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Build and output directories
+dist/
+build/
+out/
+coverage/
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+
+# Git-related files
+.git/
+
+# Environment variables
+.env
+.env.local
+
+# AI model files (if applicable)
+model/
+*.h5
+*.pkl
+*.onnx
+
+# File explorer temporary files
+/.file-explorer-cache
+
+# Webpack or bundler-specific files
+/.parcel-cache
+/.next/
+/.nuxt/
+
+# Lint and formatting
+eslintcache
+.prettiercache
+
+# Other
+*.swp
+*.bak
