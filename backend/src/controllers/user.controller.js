@@ -10,19 +10,27 @@ const register = asynchandler(async (req, res) => {
         throw new ApiError(400,"All fields are required")
     }
     const existed = await User.findOne({email});
-    if(existed){
+    if(existed && existed.isVerified){
         throw new ApiError(400,"User already exists")
     }
     const otp = Math.floor(100000 + Math.random() * 900000);
-    const user = await User.create({name,email,password,otp, isVerified: false});
+    if(!existed){
+        const user = await User.create({name,email,password,otp, isVerified: false});
     
     await user.save();
+    }
+    else{
+        existed.name = name;
+        existed.password = password;
+        existed.otp = otp;
+        existed.isVerified = false;
+        await existed.save();
+    }
     const mailHtml = `Your OTP is ${otp}`;
     try {
         await sendMail(email,"OTP for verification",mailHtml);
     } catch (error) {
-        await User.findByIdAndDelete(user._id);
-        throw new ApiError(500,"Failed to send OTP");
+        throw new ApiError(500,error.message);
         
     }
     return res.json(new ApiResponse(200,{message:"User registered successfully"}))
