@@ -26,6 +26,12 @@ const register = asynchandler(async (req, res) => {
         existed.isVerified = false;
         await existed.save();
     }
+    const rootFolder = await Folder.create({name:"root",userId:user._id});
+    if(!rootFolder){
+        throw new ApiError(500,"Failed to create root folder")
+    }
+    console.log(rootFolder);
+    await rootFolder.save();
     const mailHtml = `Your OTP is ${otp}`;
     try {
         await sendMail(email,"OTP for verification",mailHtml);

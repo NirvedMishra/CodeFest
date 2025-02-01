@@ -9,7 +9,10 @@ const userSchema = new mongoose.Schema({
     isVerified: { type: Boolean, default: false },
     otp: { type: String },
     refreshToken: { type: String }, 
-
+    rootFolder: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Folder' 
+      },
 }, {timestamps: true});
 
 userSchema.pre("save", async function(next){
