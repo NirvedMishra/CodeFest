@@ -18,8 +18,10 @@ app.use(cookieParser());
 app.use(express.urlencoded({extended:true}));
 
 import userRouter from './routes/user.routes.js'
+import judge0 from './routes/judge0.route.js'
 //routes declaration
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/judge0", judge0);
 
 app.use((err, req, res, next) => {
   if (err instanceof ApiError) {
