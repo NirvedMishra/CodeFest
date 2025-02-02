@@ -23,12 +23,14 @@ import judge0 from './routes/judge0.route.js'
 import folderRouter from './routes/folder.route.js'
 import fileRouter from './routes/file.route.js'
 import CodeSuggestion from './routes/sentiment.route.js'
+import WorkSpaceRouter from './routes/workspace.routes.js'  
 //routes declaration
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/judge0", judge0);
 app.use("/api/v1/folder", folderRouter);
 app.use("/api/v1/file", fileRouter);
 app.use("/api/v1/suggestion", CodeSuggestion);
+app.use("/api/v1/workspace", WorkSpaceRouter);
 
 app.use((err, req, res, next) => {
     if (err instanceof ApiError) {

@@ -5,14 +5,15 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 
 const createFolder = async (req, res) => {
     try {
-        const { userId, name, parentId } = req.body;
-        const user = await User.findById(userId);
+        const { name, parentId,workspaceId } = req.body;
+        const user = await User.findById(req.user._id);
         if (!user) throw new ApiError(404, 'User not found');
 
         const newFolder = new Folder({
             name,
-            userId,
+            userId: req.user._id,
             parentId: parentId || null,
+            workspaceId
         });
 
         await newFolder.save();

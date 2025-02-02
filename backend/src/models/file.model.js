@@ -9,8 +9,12 @@ const fileSchema = new Schema({
         ref: 'Folder',
         required: true
     },
-    type: { type: String, required: true },
     content: { type: String, default: '' },
+    workspaceId: {
+        type: Schema.Types.ObjectId,
+        ref: 'WorkSpace',
+        required: true
+    },
 
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }

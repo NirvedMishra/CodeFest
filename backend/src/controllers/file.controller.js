@@ -3,6 +3,7 @@ import { File } from "../models/file.model.js";
 import multer from "multer";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { asynchandler } from "../utils/asynchandler.js";
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -19,40 +20,20 @@ const uploadFile = async (req, res) => {
     console.log('uploadFile function invoked');
     console.log('Request body:', req.body);
 
-    try {
-        upload(req, res, async (err) => {
-            if (err) {
-                console.log('File upload error:', err);
-                throw new ApiError(500, 'Error uploading file', err);
-            }
-
-            console.log('File upload successful:', req.file);
-
-            const { folderId } = req.body;
-
-            const newFile = new File({
-                name: req.file.originalname,
-                path: req.file.path,
-                size: req.file.size,
-                folderId,
-            });
-
-            console.log('Attempting to save new file:', newFile);
-
-            await newFile.save();
-
-            if (folderId) {
-                console.log('Adding file to folder with ID:', folderId);
-                await Folder.findByIdAndUpdate(folderId, { $push: { files: newFile._id } });
-            }
-
-            console.log('File saved successfully:', newFile);
-            res.status(201).json(new ApiResponse(201, { message: 'File uploaded successfully', file: newFile }));
-        });
-    } catch (error) {
-        console.log('Error occurred while uploading file:', error);
-        throw new ApiError(500, 'Error uploading file', error);
-    }
+ 
+        const {name,parentId, workspaceId,content} = req.body;
+        const file = await File.create({name,parentId,workspaceId,content});
+        if(!file){
+            throw new ApiError(500,"Failed to create file")
+        }
+        const folder = await Folder.findById(parentId);
+        if(!folder){
+            throw new ApiError(404,"Folder not found")
+        }
+        folder.files.push(file._id);
+        await folder.save();
+        return res.json(new ApiResponse(200,{message:"File uploaded successfully",file}));
+ 
 };
 
 const getFile = async (req, res) => {
@@ -76,7 +57,7 @@ const getFile = async (req, res) => {
     }
 };
 
-const renameFile = async (req, res) => {
+const renameFile = async (req, res) => { 
     console.log('renameFile function invoked');
     console.log('Request parameters:', req.params);
     console.log('Request body:', req.body);
@@ -100,23 +81,35 @@ const renameFile = async (req, res) => {
     }
 };
 
-const deleteFile = async (req, res) => {
-    try {
+const deleteFile = asynchandler(async (req, res) => {
+  
         const { fileId } = req.params;
+        console.log('Received fileId:', fileId);
 
         const file = await File.findById(fileId);
-        if (!file) return res.status(404).json({ message: 'File not found' });
+        if (!file) {
+            console.log('File not found for fileId:', fileId);
+            throw new ApiError(404, 'File not found');
+        }
 
         // Remove file reference from folder
-        await Folder.findByIdAndUpdate(file.folderId, { $pull: { files: fileId } });
+        await Folder.findByIdAndUpdate(file.parentId, { $pull: { files: fileId } });
 
         await File.findByIdAndDelete(fileId);
 
+        console.log('File deleted successfully:', fileId);
         res.status(200).json(new ApiResponse(200, { message: 'File deleted successfully' }));
-    } catch (error) {
-        console.log('Error occurred while deleting file:', error);
-        throw new ApiError(500, 'Error deleting file', error);
+  
+});
+const saveFile = asynchandler(async (req, res) => {
+    const { fileId } = req.params;
+    const { content } = req.body;
+    const file = await File.findByIdAndUpdate(fileId, { content:content});
+    if (!file) {
+        throw new ApiError(404, 'File not found');
     }
-};
+    await file.save();
+    return res.json(new ApiResponse(200, { message: 'File updated successfully', file }));
+})
 
-export { uploadFile, getFile, renameFile, deleteFile };
+export { uploadFile, getFile, renameFile, deleteFile,saveFile };

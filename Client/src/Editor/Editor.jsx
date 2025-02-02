@@ -3,40 +3,9 @@ import Monaco from "./Monaco.jsx";
 import ChatAI from "./ChatAI.jsx";
 import { useState } from "react";
 
-const Editor = () => {
-  const [tabFiles, setTabFiles] = useState([
-    {
-      name: "index.js",
-      content: `console.log("Hello, World!");
-    // write your code here`,
-    },
-    {
-      name: "main.py",
-      content: `print("Hello, World!")
-    #write your code here`,
-    },
-    {
-      name: "hello.cpp",
-      content: `#include <iostream>
-using namespace std;
-
-int main() {
-    cout << "Hello, World!" << endl;
-    // write your code here
-    return 0;
-}`,
-    },
-    {
-      name: "Main.java",
-      content: `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-        // write your code here
-        }
-}
-        `,
-    },
-  ]);
+const Editor = ({ Data }) => {
+  const [data, setdata] = useState(Data);
+  const [tabFiles, setTabFiles] = useState([]);
   const [activeTab, setActiveTab] = useState(1);
   // eslint-disable-next-line no-unused-vars
   const [currentCode, setCurrentCode] = useState(
@@ -53,6 +22,20 @@ int main() {
       content: newCode,
     };
     setTabFiles(updatedFiles);
+  };
+  const [fontSize, setFontSize] = useState(14);
+  const [theme, setTheme] = useState('vs-dark');
+
+  const handleFontSizeChange = (delta) => {
+    setFontSize(prevSize => Math.max(8, Math.min(30, prevSize + delta)));
+  };
+
+  const handleThemeToggle = () => {
+    setTheme(prevTheme => (prevTheme === 'vs-dark' ? 'light' : 'vs-dark'));
+  };
+
+  const handleThemeSelect = (selectedTheme) => {
+    setTheme(selectedTheme);
   };
 
   const getLanguage = (file) => {
@@ -79,33 +62,68 @@ int main() {
     }
   };
 
-  const [fontSize, setFontSize] = useState(14);
-  const [theme, setTheme] = useState('vs-dark');
 
-  const handleFontSizeChange = (delta) => {
-    setFontSize(prevSize => Math.max(8, Math.min(30, prevSize + delta)));
+  const addFile = (file) => {
+    // Check if the file is already in the array by its id
+    const fileExists = tabFiles.some((tabFile) => tabFile.id === file.id);
+    if (!fileExists) {
+      setTabFiles([...tabFiles, file]);
+      setActiveTab(tabFiles.length);
+    } else {
+      // Optionally, you can set the active tab to the existing file
+      const existingFileIndex = tabFiles.findIndex(
+        (tabFile) => tabFile.id === file.id
+      );
+      setActiveTab(existingFileIndex);
+    }
   };
+  const handleSave = async () => {
+    const data1 = {content: currentCode};
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/file/save/${tabFiles[activeTab].id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify(data1),
+      });
+      const res = await response.json();
+      const file = res.data.file;
+      const updateData = (node) => {
+        if (node._id === file.id) {
+          return { ...node, content: file.content };
+        }
+        return {
+          ...node,
+          children: node.children.map(updateData),
+          files: node.files.map(updateData),
+        };
+      };
 
-  const handleThemeToggle = () => {
-    setTheme(prevTheme => (prevTheme === 'vs-dark' ? 'light' : 'vs-dark'));
-  };
+      setdata(updateData(data));
+      console.log("saved");
 
-  const handleThemeSelect = (selectedTheme) => {
-    setTheme(selectedTheme);
-  };
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <div className="fixed inset-0 flex bg-gray-900">
-      <SideBar 
-        position="left" 
-        fontSize={fontSize}
-        onFontSizeChange={handleFontSizeChange}
-        theme={theme}
-        onThemeToggle={handleThemeToggle}
-        onThemeSelect={handleThemeSelect}
-      />
+    <SideBar 
+      position="left" 
+      fontSize={fontSize}
+      onFontSizeChange={handleFontSizeChange}
+      theme={theme}
+      onThemeToggle={handleThemeToggle}
+      onThemeSelect={handleThemeSelect}
+      data={data.data} addFile={addFile}
+    />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="h-9 flex items-center px-2 bg-gray-800 border-b border-gray-700">
+        {/* Tabs bar */}
+        <div className="h-9 flex items-center bg-gray-800 border-b border-gray-700 justify-between">
+          <div className="flex flex-row px-1">
           {tabFiles.length > 0 &&
             tabFiles.map((file, index) => (
               <div
@@ -139,6 +157,10 @@ int main() {
                 }
               </div>
             ))}
+          </div>
+          <button onClick={()=>{handleSave()}} className="mx-2 px-2 border rounded cursor-pointer my-2 hover:bg-blue-700 hover:text-white">Save</button>
+
+
         </div>
 
         <div className="flex-1 relative">
@@ -155,11 +177,11 @@ int main() {
           <ChatAI />
         </div>
       </div>
-      <SideBar
+      {tabFiles.length > 0 && <SideBar
         position="right"
         code={tabFiles[activeTab]?.content}
         language={getLanguage(tabFiles[activeTab]?.name)}
-      />
+      />}
     </div>
   );
 };
