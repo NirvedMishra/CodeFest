@@ -51,13 +51,14 @@ export const getCodeCompletion = async (CodeSnippet) => {
   try {
     const result = await inference.textGeneration({
       model: "codellama/CodeLlama-7b-hf",
-      inputs: CodeSnippet,
+      inputs: `you are an elite level expert coder who is helping a student to write code then please complete the following code without changing the existing code as well as do not write any other thing  which is not a code: and avoid writing comments and only write code:${CodeSnippet}`,
       parameters: {
         max_new_tokens: 100,
-        temperature: 0.7,
+        temperature: 0.3,
         return_full_text: false,
       },
     });
+    console.log(result);
     return {
       success: true,
       generatedCode: result,
