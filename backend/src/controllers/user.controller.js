@@ -2,9 +2,9 @@ import { asynchandler } from "../utils/asynchandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
+import { Folder } from "../models/folder.model.js";
 import { sendMail } from "../utils/sendMail.js";
 import {jwtDecode} from "jwt-decode";
-import { Folder } from "../models/folder.model.js";
 const register = asynchandler(async (req, res) => {
     const { name, email, password } = req.body;
     if([name,password,email].some((field)=>field?.trim === "")){
@@ -143,4 +143,12 @@ const refreshAccessToken = asynchandler( async (req, res) => {
     return res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",newRefreshToken,options).json(new ApiResponse(200,{accessToken},"Token refreshed"))
 });
 
-export { register,verifyOtpRegistration,login,logOut,refreshAccessToken }
+const getWorkSpace = asynchandler(async (req, res) => {
+    const user = await User.findById(req.user._id).populate("workSpace");
+    if(!user){
+        throw new ApiError(404,"User not found")
+    }
+    return res.json(new ApiResponse(200,{workSpaces:user.workSpace}));
+});
+
+export { register,verifyOtpRegistration,login,logOut,refreshAccessToken ,getWorkSpace}
