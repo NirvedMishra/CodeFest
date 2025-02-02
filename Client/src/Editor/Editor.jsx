@@ -1,5 +1,6 @@
 import SideBar from "./SideBar.jsx";
 import Monaco from "./Monaco.jsx";
+import ChatAI from "./ChatAI.jsx";
 import { useState } from "react";
 
 const Editor = () => {
@@ -37,6 +38,7 @@ int main() {
     },
   ]);
   const [activeTab, setActiveTab] = useState(1);
+  // eslint-disable-next-line no-unused-vars
   const [currentCode, setCurrentCode] = useState(
     tabFiles[activeTab]?.content || ""
   );
@@ -126,11 +128,12 @@ int main() {
               onCodeChange={handleCodeChange}
             />
           )}
+          <ChatAI />
         </div>
       </div>
       <SideBar
         position="right"
-        code={currentCode}
+        code={tabFiles[activeTab]?.content}
         language={getLanguage(tabFiles[activeTab]?.name)}
       />
     </div>

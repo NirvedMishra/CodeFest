@@ -31,11 +31,11 @@ app.use("/api/v1/file", fileRouter);
 app.use("/api/v1/suggestion", CodeSuggestion);
 
 app.use((err, req, res, next) => {
-  if (err instanceof ApiError) {
-      res.status(err.statusCode).json(new ApiResponse(err.statusCode, null, err.message));
-  } else {
-      res.status(500).json(new ApiResponse(500, null, 'Internal Server Error'));
-  }
+    if (err instanceof ApiError) {
+        res.status(err.statusCode).json(new ApiResponse(err.statusCode, null, err.message));
+    } else {
+        res.status(500).json(new ApiResponse(500, null, 'Internal Server Error'));
+    }
 });
 
 

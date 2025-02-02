@@ -16,9 +16,9 @@ const Navbar = () => {
             <Link to='/Editor'>Editor</Link>
             {auth.token && <button onClick={Logout} className='cursor-pointer'>Logout</button>}
             {!auth.token && <Link to='/login' className='cursor-pointer'>Login</Link>}
-            {!auth.token && <Link to='/register' className='cursor-pointer'>Register</Link>}            
-
-
+            {!auth.token && <Link to='/register' className='cursor-pointer'>Register</Link>}     
+            
+                   
             </div>
         </div>
     </div>
