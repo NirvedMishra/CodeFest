@@ -81,24 +81,26 @@ const getHumanReadableResult = (result) => {
 
 // Express route handler
 const executeCode = async (req, res) => {
-    const { sourceCode, languageId, input } = req.body;
+    try {
+        const { sourceCode, languageId, input } = req.body;
 
-    const submission = await submitCode(sourceCode, languageId, input);
-    if (!submission || !submission.token) {
-        return res.status(500).json({ error: "Submission failed" });
-    }
+        const submission = await submitCode(sourceCode, languageId, input);
+        if (!submission || !submission.token) {
+            throw new ApiError(500, "Submission failed");
+        }
 
-    // Wait before fetching the result
-    setTimeout(async () => {
+        // Wait for 3 seconds
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
         const result = await getSubmissionResult(submission.token);
-        const readableResult = getHumanReadableResult(result);
         if (!result) {
             throw new ApiError(500, 'Failed to fetch execution result');
         }
-        res
-            .status(200)
-            .json(new ApiResponse(200, readableResult, "Code executed successfully"));
-    }, 3000);
+
+        res.status(200).json(new ApiResponse(200, result, "Code executed successfully"));
+    } catch (error) {
+        throw new ApiError(500, error?.message || "Error executing code");
+    }
 };
 
 export { executeCode };

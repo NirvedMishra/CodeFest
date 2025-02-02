@@ -8,10 +8,11 @@ import { ApiResponse } from './utils/ApiResponse.js'
 const app = express();
 const corsOptions = {
     credentials: true,
-    origin: process.env.CORS_ORIGIN, // Replace with your client app's URL
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization']
-  };
+    origin: process.env.CORS_ORIGIN.trim(), // Trim any whitespace and trailing slash
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['set-cookie']
+};
 app.use(cors(corsOptions))
 app.use(express.json({limit: '50kb'}));
 app.use(cookieParser());

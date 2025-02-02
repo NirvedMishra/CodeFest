@@ -1,10 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 
+// eslint-disable-next-line react/prop-types
+const Monaco = ({ file, language, onCodeChange }) => {
+  const [code, setCode] = useState(file);
 
+  useEffect(() => {
+    setCode(file);
+  }, [file]);
 
-const Monaco = ({file,language}) => {
-  const [code, setCode] = useState(file); 
+  const handleEditorChange = (value) => {
+    setCode(value);
+    onCodeChange?.(value);
+  };
 
   // // Handle language change
   // const handleLanguageChange = (e) => {
@@ -41,8 +49,8 @@ const Monaco = ({file,language}) => {
           width="100%"
           language={language}
           theme="vs-dark"
-          value={code} // Sets the editor content dynamically
-          onChange={(newValue) => setCode(newValue)} // Update state when user types
+          value={code}
+          onChange={handleEditorChange}
         />
       </div>
     </div>

@@ -2,7 +2,6 @@ import { createTransport } from 'nodemailer';
 import { google } from 'googleapis';
 import dotenv from "dotenv";
 
-import dotenv from "dotenv"
 dotenv.config()
 
 export const sendMail =  async (email, subject, mailHtml) => {
