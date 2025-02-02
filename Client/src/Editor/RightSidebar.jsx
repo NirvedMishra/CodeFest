@@ -1,4 +1,4 @@
-import { Play, Settings } from "lucide-react";
+import { Play } from "lucide-react";
 import { useState } from "react";
 
 // eslint-disable-next-line react/prop-types
@@ -88,13 +88,10 @@ const RightSidebar = ({ code, language }) => {
           <button
             onClick={executeCode}
             disabled={isLoading}
-            className="p-2 hover:bg-gray-700 rounded text-gray-400 hover:text-gray-200 flex items-center gap-2"
+            className="p-2 hover:bg-gray-700 rounded text-white hover:text-gray-200 flex items-center gap-2"
           >
             <Play size={16} />
             {isLoading ? "Running..." : "Run"}
-          </button>
-          <button className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-gray-200">
-            <Settings size={16} />
           </button>
         </div>
       </div>

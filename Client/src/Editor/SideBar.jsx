@@ -4,7 +4,7 @@ import LeftSidebar from './LeftSidebar';
 import RightSidebar from './RightSidebar';
 
 // eslint-disable-next-line react/prop-types
-const Sidebar = ({ position = 'left', code, language }) => {
+const Sidebar = ({ position = 'left', code, language, fontSize, onFontSizeChange, theme, onThemeToggle, onThemeSelect }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -13,7 +13,17 @@ const Sidebar = ({ position = 'left', code, language }) => {
         className={`h-full bg-gray-800 border-r border-gray-700 transition-all duration-300 flex flex-col
           ${isCollapsed ? 'w-0 overflow-hidden' : 'w-72'}`}
       >
-        {position === 'left' ? <LeftSidebar /> : <RightSidebar code={code} language={language} />}
+        {position === 'left' ? (
+          <LeftSidebar 
+            fontSize={fontSize} 
+            onFontSizeChange={onFontSizeChange} 
+            theme={theme} 
+            onThemeToggle={onThemeToggle}
+            onThemeSelect={onThemeSelect}
+          />
+        ) : (
+          <RightSidebar code={code} language={language} />
+        )}
       </div>
       
       <button
