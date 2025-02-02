@@ -41,11 +41,12 @@ int main() {
   // eslint-disable-next-line no-unused-vars
   const [currentCode, setCurrentCode] = useState(
     tabFiles[activeTab]?.content || ""
+    
   );
+
 
   const handleCodeChange = (newCode) => {
     setCurrentCode(newCode);
-    // Update the file content in tabFiles
     const updatedFiles = [...tabFiles];
     updatedFiles[activeTab] = {
       ...updatedFiles[activeTab],
@@ -77,11 +78,33 @@ int main() {
         return "text";
     }
   };
+
+  const [fontSize, setFontSize] = useState(14);
+  const [theme, setTheme] = useState('vs-dark');
+
+  const handleFontSizeChange = (delta) => {
+    setFontSize(prevSize => Math.max(8, Math.min(30, prevSize + delta)));
+  };
+
+  const handleThemeToggle = () => {
+    setTheme(prevTheme => (prevTheme === 'vs-dark' ? 'light' : 'vs-dark'));
+  };
+
+  const handleThemeSelect = (selectedTheme) => {
+    setTheme(selectedTheme);
+  };
+
   return (
     <div className="fixed inset-0 flex bg-gray-900">
-      <SideBar position="left" />
+      <SideBar 
+        position="left" 
+        fontSize={fontSize}
+        onFontSizeChange={handleFontSizeChange}
+        theme={theme}
+        onThemeToggle={handleThemeToggle}
+        onThemeSelect={handleThemeSelect}
+      />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Tabs bar */}
         <div className="h-9 flex items-center px-2 bg-gray-800 border-b border-gray-700">
           {tabFiles.length > 0 &&
             tabFiles.map((file, index) => (
@@ -118,7 +141,6 @@ int main() {
             ))}
         </div>
 
-        {/* Editor container */}
         <div className="flex-1 relative">
           {tabFiles.length > 0 && (
             <Monaco
@@ -126,6 +148,8 @@ int main() {
               file={tabFiles[activeTab].content}
               language={getLanguage(tabFiles[activeTab].name)}
               onCodeChange={handleCodeChange}
+              fontSize={fontSize}
+              theme={theme}
             />
           )}
           <ChatAI />
