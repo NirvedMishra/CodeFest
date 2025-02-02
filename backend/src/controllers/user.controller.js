@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { sendMail } from "../utils/sendMail.js";
 import {jwtDecode} from "jwt-decode";
+import { Folder } from "../models/folder.model.js";
 const register = asynchandler(async (req, res) => {
     const { name, email, password } = req.body;
     if([name,password,email].some((field)=>field?.trim === "")){
@@ -14,10 +15,12 @@ const register = asynchandler(async (req, res) => {
         throw new ApiError(400,"User already exists")
     }
     const otp = Math.floor(100000 + Math.random() * 900000);
+    let id = null;
     if(!existed){
         const user = await User.create({name,email,password,otp, isVerified: false});
     
     await user.save();
+    id = user._id;
     }
     else{
         existed.name = name;
@@ -25,8 +28,9 @@ const register = asynchandler(async (req, res) => {
         existed.otp = otp;
         existed.isVerified = false;
         await existed.save();
+        id = existed._id
     }
-    const rootFolder = await Folder.create({name:"root",userId:user._id});
+    const rootFolder = await Folder.create({name:"root",userId:id});
     if(!rootFolder){
         throw new ApiError(500,"Failed to create root folder")
     }
