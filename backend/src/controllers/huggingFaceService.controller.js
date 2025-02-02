@@ -22,6 +22,7 @@ export const handleQuickfix = async (req, res) => {
   try {
     const { codeSnippet } = req.body;
     const result = await getSyntaxFixSuggestions(codeSnippet);
+    console.log(codeSnippet, "result", result);
     res.json(new ApiResponse(200, result));
   } catch (error) {
     res
@@ -50,13 +51,14 @@ export const getCodeCompletion = async (CodeSnippet) => {
   try {
     const result = await inference.textGeneration({
       model: "codellama/CodeLlama-7b-hf",
-      inputs: CodeSnippet,
+      inputs: `you are an elite level expert coder who is helping a student to write code then please complete the following code without changing the existing code as well as do not write any other thing  which is not a code: and avoid writing comments and only write code:${CodeSnippet}`,
       parameters: {
         max_new_tokens: 100,
-        temperature: 0.7,
+        temperature: 0.3,
         return_full_text: false,
       },
     });
+    console.log(result);
     return {
       success: true,
       generatedCode: result,
@@ -75,12 +77,25 @@ export const getSyntaxFixSuggestions = async (codeSnippet) => {
   try {
     const result = await inference.textGeneration({
       model: "codellama/CodeLlama-7b-hf",
-      inputs: codeSnippet,
+      inputs: `prompt: you are an elite level expert coder then please tell me the quick fix for the following code:,
+      ${codeSnippet}`,
+      parameters: {
+        max_new_tokens: 10,
+        temperature: 0.3,
+        return_full_text: false,
+      },
     });
-    return result;
+    return {
+      success: true,
+      generated_text: result.generated_text
+    };
   } catch (error) {
     console.error("Error in syntax fix:", error);
-    return null;
+    return {
+      success: false,
+      error: error.message,
+      generated_text: null
+    };
   }
 };
 
