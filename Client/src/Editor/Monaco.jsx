@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import monokai from 'monaco-themes/themes/Monokai.json';
 import nightOwl from 'monaco-themes/themes/Night Owl.json';
@@ -12,6 +12,7 @@ const Monaco = ({ file, language, onCodeChange, fontSize, theme }) => {
   const [suggestion, setSuggestion] = useState('');
   const [completion, setCompletion] = useState('');
   const monaco = useMonaco();
+  const editorRef = useRef(null);
 
   useEffect(() => {
     if (monaco) {
@@ -31,9 +32,24 @@ const Monaco = ({ file, language, onCodeChange, fontSize, theme }) => {
     }
   }, [monaco, theme]);
 
+  useEffect(() => {
+    if (editorRef.current) {
+      const model = editorRef.current.getModel();
+      const currentPosition = editorRef.current.getPosition();
+      setCode(file);
+      editorRef.current.setValue(file);
+      editorRef.current.setPosition(currentPosition);
+      editorRef.current.focus();
+    }
+  }, [file]);
+
+  const handleEditorDidMount = (editor) => {
+    editorRef.current = editor;
+  };
+
   const handleEditorChange = (value) => {
     setCode(value);
-    onCodeChange?.(value);
+    onCodeChange(value);
   };
 
   const handleCodeSuggestions = async () => {
@@ -133,42 +149,41 @@ const Monaco = ({ file, language, onCodeChange, fontSize, theme }) => {
 
   return (
     <div className="h-[97vh] w-full flex flex-col relative">
+{suggestion && (
+  <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-10 bg-white border border-gray-200 p-4 rounded shadow-lg max-w-md">
+    <h3 className="font-bold mb-2">Suggestion:</h3>
+    <p className="text-sm">{suggestion}</p>
+    <button 
+      onClick={() => setSuggestion('')}
+      className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+    >
+      ×
+    </button>
+  </div>
+)}
 
-      {suggestion && (
-        <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-10 bg-white border border-gray-200 p-4 rounded shadow-lg max-w-md">
-          <h3 className="font-bold mb-2">Suggestion:</h3>
-          <p className="text-sm">{suggestion}</p>
-          <button 
-            onClick={() => setSuggestion('')}
-            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-          >
-            ×
-          </button>
-        </div>
-      )}
+{completion && (
+  <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-10 bg-white border border-gray-200 p-4 rounded shadow-lg max-w-md">
+    <h3 className="font-bold mb-2">Auto Completion:</h3>
+    <p className="text-sm">{completion}</p>
+    <div className="flex justify-end mt-2 gap-2">
+      <button 
+        onClick={applyCompletion}
+        className="bg-green-500 text-white px-3 py-1 rounded text-sm"
+      >
+        Apply
+      </button>
+      <button 
+        onClick={() => setCompletion('')}
+        className="bg-gray-500 text-white px-3 py-1 rounded text-sm"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
 
-      {completion && (
-        <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-10 bg-white border border-gray-200 p-4 rounded shadow-lg max-w-md">
-          <h3 className="font-bold mb-2">Auto Completion:</h3>
-          <p className="text-sm">{completion}</p>
-          <div className="flex justify-end mt-2 gap-2">
-            <button 
-              onClick={applyCompletion}
-              className="bg-green-500 text-white px-3 py-1 rounded text-sm"
-            >
-              Apply
-            </button>
-            <button 
-              onClick={() => setCompletion('')}
-              className="bg-gray-500 text-white px-3 py-1 rounded text-sm"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-grow">
+<div className="flex-grow">
         <Editor
           height="100%"
           width="100%"
@@ -176,6 +191,7 @@ const Monaco = ({ file, language, onCodeChange, fontSize, theme }) => {
           theme={theme}
           value={code}
           onChange={handleEditorChange}
+          onMount={handleEditorDidMount}
           options={{ fontSize: fontSize }}
         />
       </div>
@@ -193,7 +209,8 @@ const Monaco = ({ file, language, onCodeChange, fontSize, theme }) => {
           Get Completion
         </button>
       </div>
-    </div>
+</div>
+    
   );
 };
 
