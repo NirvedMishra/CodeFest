@@ -1,27 +1,55 @@
 import SideBar from "./SideBar.jsx";
 import Monaco from "./Monaco.jsx";
 import ChatAI from "./ChatAI.jsx";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { io } from "socket.io-client";
 
 const Editor = ({ Data }) => {
-  const [data, setdata] = useState(Data);
+  const [data, setData] = useState(Data);
   const [tabFiles, setTabFiles] = useState([]);
-  const [activeTab, setActiveTab] = useState(1);
-  // eslint-disable-next-line no-unused-vars
-  const [currentCode, setCurrentCode] = useState(
-    tabFiles[activeTab]?.content || ""
-    
-  );
+  const [activeTab, setActiveTab] = useState(0);
+  const socket = io(import.meta.env.VITE_BACKEND_URL);
+  const editorRef = useRef(null);
 
+  useEffect(() => {
+    socket.emit("joinWorkspace", data.data._id);
+
+    socket.on("codeUpdate", (fileId, newCode) => {
+      if (fileId === tabFiles[activeTab]?.id) {
+        console.log("Code updated");
+        const updatedFiles = [...tabFiles];
+        updatedFiles[activeTab] = {
+          ...updatedFiles[activeTab],
+          content: newCode,
+        };
+        setTabFiles(updatedFiles);
+        if (editorRef.current) {
+          const currentPosition = editorRef.current.getPosition();
+          editorRef.current.setValue(newCode);
+          editorRef.current.setPosition(currentPosition);
+          editorRef.current.focus();
+        }
+      }
+    });
+
+    return () => {
+      socket.emit("leaveWorkspace", data.data._id);
+      socket.disconnect();
+    };
+  }, [data.data._id, activeTab, tabFiles]);
 
   const handleCodeChange = (newCode) => {
-    setCurrentCode(newCode);
     const updatedFiles = [...tabFiles];
     updatedFiles[activeTab] = {
       ...updatedFiles[activeTab],
       content: newCode,
     };
     setTabFiles(updatedFiles);
+    socket.emit("codeChange", data.data._id, tabFiles[activeTab].id, newCode);
+  };
+
+  const handleEditorDidMount = (editor) => {
+    editorRef.current = editor;
   };
   const [fontSize, setFontSize] = useState(14);
   const [theme, setTheme] = useState('vs-dark');
@@ -101,7 +129,7 @@ const Editor = ({ Data }) => {
         };
       };
 
-      setdata(updateData(data));
+      setData(updateData(data));
       console.log("saved");
 
     } catch (error) {
@@ -172,6 +200,7 @@ const Editor = ({ Data }) => {
               onCodeChange={handleCodeChange}
               fontSize={fontSize}
               theme={theme}
+              onMount={handleEditorDidMount}
             />
           )}
           <ChatAI />
